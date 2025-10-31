@@ -100,6 +100,37 @@
         // Convert Markdown to HTML
         const html = marked.parse(markdown);
         document.getElementById("article-content").innerHTML = html;
+        // ✅ After rendering the main article, load related posts
+try {
+  const res = await fetch("posts.json");
+  const posts = await res.json();
+
+  // Find the current post and suggest 3 others
+  const currentFile = file;
+  const related = posts
+    .filter(p => p.file !== currentFile)
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 3);
+
+  if (related.length > 0) {
+    const relatedHTML = `
+      <hr style="margin-top:40px; border:none; border-top:2px solid #eee;">
+      <h3 style="color:#0a2540; margin-top:20px;">Related Articles</h3>
+      <ul style="list-style:none; padding:0;">
+        ${related.map(r => `
+          <li style="margin-bottom:10px;">
+            <a href="post.html?file=${r.file}" style="color:#133b6b; text-decoration:none; font-weight:bold;">
+              ${r.title}
+            </a>
+          </li>`).join("")}
+      </ul>
+    `;
+    document.getElementById("article-content").innerHTML += relatedHTML;
+  }
+} catch (e) {
+  console.error("Could not load related posts", e);
+}
+
       } catch (err) {
         document.getElementById("article-content").innerHTML =
           "<p>⚠️ Unable to load this article.</p>";
