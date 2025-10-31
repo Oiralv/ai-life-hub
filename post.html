@@ -3,70 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Read the latest AI and technology insights from AI Life Hub Tech." />
   <title>AI Life Hub Tech - Article</title>
   <style>
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
       background: #f4f4f4;
       color: #333;
-      margin: 0;
-      padding: 0;
       line-height: 1.6;
     }
     header {
       background: #0a2540;
-      color: white;
+      color: #fff;
       text-align: center;
       padding: 20px 0;
     }
+    header h2 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+    nav {
+      background: #133b6b;
+      text-align: center;
+      padding: 10px;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
     .container {
       width: 90%;
-      max-width: 800px;
-      background: white;
+      max-width: 900px;
       margin: 30px auto;
+      background: white;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    article h1 {
+    article h1, article h2, article h3 {
       color: #0a2540;
-      font-size: 1.8em;
-      margin-bottom: 15px;
     }
     article img {
-      width: 100%;
+      max-width: 100%;
       border-radius: 8px;
       margin: 15px 0;
     }
-    article p {
-      font-size: 1.05em;
-      margin-bottom: 15px;
-    }
-    footer {
-      text-align: center;
-      padding: 20px;
-      background: #0a2540;
-      color: white;
-      margin-top: 40px;
-      font-size: 0.9em;
-    }
-    .back {
-      display: inline-block;
-      margin-bottom: 15px;
-      padding: 8px 16px;
-      background: #133b6b;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: background 0.3s;
-    }
-    .back:hover {
-      background: #0a2540;
-    }
     .related {
       margin-top: 40px;
-      padding-top: 20px;
       border-top: 2px solid #eee;
+      padding-top: 20px;
     }
     .related h3 {
       color: #0a2540;
@@ -76,26 +67,45 @@
       list-style: none;
       padding: 0;
     }
-    .related li {
-      margin-bottom: 10px;
+    .related ul li {
+      margin: 10px 0;
     }
-    .related a {
-      color: #133b6b;
+    .related ul li a {
       text-decoration: none;
+      color: #133b6b;
       font-weight: bold;
     }
-    .related a:hover {
+    .related ul li a:hover {
       text-decoration: underline;
     }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #0a2540;
+      color: #fff;
+      font-size: 0.9em;
+      margin-top: 50px;
+    }
   </style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2590388099431427"
+     crossorigin="anonymous"></script>
 </head>
+
 <body>
   <header>
     <h2>AI Life Hub Tech</h2>
+    <p>Exploring the Future of Artificial Intelligence and Technology</p>
   </header>
 
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="terms.html">Terms & Conditions</a>
+  </nav>
+
   <div class="container">
-    <a class="back" href="index.html">← Back to Home</a>
     <article id="article-content">
       <p>Loading article...</p>
     </article>
@@ -105,28 +115,30 @@
     <p>&copy; 2025 AI Life Hub Tech. All rights reserved.</p>
   </footer>
 
-  <!-- Markdown parser -->
+  <!-- Markdown + Related Articles loader -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const file = params.get("file");
 
     async function loadArticle() {
+      const container = document.getElementById("article-content");
+
       if (!file) {
-        document.getElementById("article-content").innerHTML = "<p>❌ No article selected.</p>";
+        container.innerHTML = "<p>❌ No article selected.</p>";
         return;
       }
 
       try {
+        // Cargar el artículo Markdown
         const response = await fetch(`posts/${file}`);
         const markdown = await response.text();
-
-        // Convert Markdown to HTML
         const html = marked.parse(markdown);
-        document.getElementById("article-content").innerHTML = html;
+        container.innerHTML = html;
 
-        // ✅ Load related posts
+        // Cargar artículos relacionados
         const res = await fetch("posts.json");
+        if (!res.ok) throw new Error("Cannot load posts.json");
         const posts = await res.json();
 
         const related = posts
@@ -140,19 +152,16 @@
               <h3>Related Articles</h3>
               <ul>
                 ${related.map(r => `
-                  <li>
-                    <a href="post.html?file=${r.file}">${r.title}</a>
-                  </li>
+                  <li><a href="post.html?file=${r.file}">${r.title}</a></li>
                 `).join("")}
               </ul>
             </div>
           `;
-          document.getElementById("article-content").innerHTML += relatedHTML;
+          container.innerHTML += relatedHTML;
         }
-
-      } catch (err) {
-        document.getElementById("article-content").innerHTML =
-          "<p>⚠️ Unable to load this article.</p>";
+      } catch (error) {
+        console.error("Error loading article:", error);
+        container.innerHTML = "<p>⚠️ Error loading article.</p>";
       }
     }
 
