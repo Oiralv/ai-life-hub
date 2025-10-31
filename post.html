@@ -115,57 +115,116 @@
     <p>&copy; 2025 AI Life Hub Tech. All rights reserved.</p>
   </footer>
 
-  <!-- Markdown + Related Articles loader -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script>
+  <!-- Debugging + Markdown renderer + related posts -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  (async () => {
     const params = new URLSearchParams(window.location.search);
     const file = params.get("file");
+    const container = document.getElementById("article-content");
 
-    async function loadArticle() {
-      const container = document.getElementById("article-content");
-
-      if (!file) {
-        container.innerHTML = "<p>❌ No article selected.</p>";
-        return;
-      }
-
-      try {
-        // Cargar el artículo Markdown
-        const response = await fetch(`posts/${file}`);
-        const markdown = await response.text();
-        const html = marked.parse(markdown);
-        container.innerHTML = html;
-
-        // Cargar artículos relacionados
-        const res = await fetch("posts.json");
-        if (!res.ok) throw new Error("Cannot load posts.json");
-        const posts = await res.json();
-
-        const related = posts
-          .filter(p => p.file !== file)
-          .sort(() => 0.5 - Math.random())
-          .slice(0, 3);
-
-        if (related.length > 0) {
-          const relatedHTML = `
-            <div class="related">
-              <h3>Related Articles</h3>
-              <ul>
-                ${related.map(r => `
-                  <li><a href="post.html?file=${r.file}">${r.title}</a></li>
-                `).join("")}
-              </ul>
-            </div>
-          `;
-          container.innerHTML += relatedHTML;
-        }
-      } catch (error) {
-        console.error("Error loading article:", error);
-        container.innerHTML = "<p>⚠️ Error loading article.</p>";
-      }
+    // Helper: show visible debug line
+    function debugLine(msg, isError = false) {
+      const p = document.createElement("p");
+      p.style.fontSize = "0.95em";
+      p.style.color = isError ? "#b00020" : "#666";
+      p.textContent = msg;
+      container.appendChild(p);
     }
 
-    loadArticle();
-  </script>
-</body>
-</html>
+    if (!file) {
+      container.innerHTML = "<p>❌ No article selected. Make sure the link includes ?file=FILENAME.md</p>";
+      return;
+    }
+
+    try {
+      // 1) Fetch the markdown article
+      const articleResp = await fetch(`posts/${encodeURIComponent(file)}`);
+      if (!articleResp.ok) {
+        container.innerHTML = `<p style="color:#b00020;">⚠️ Could not fetch posts/${file} — HTTP ${articleResp.status}</p>`;
+        console.error("Article fetch failed:", articleResp);
+        return;
+      }
+      const markdown = await articleResp.text();
+
+      // 2) Convert Markdown -> HTML
+      let html = marked.parse(markdown);
+
+      // 2b) Remove a leading H1 from html if present (avoid duplicate title)
+      // If the markdown already includes "# Title" we keep that and ensure no other H1 shows.
+      // But in case your template had injected an extra H1, remove it here:
+      // (we remove any accidental first <h1> that is empty or duplicates the first heading)
+      // extract first heading text from markdown
+      const mdFirstLine = markdown.split("\n").find(l => l.trim().startsWith("#"));
+      if (mdFirstLine) {
+        // Normalise heading text
+        const mdTitle = mdFirstLine.replace(/^#+\s*/, '').trim();
+        // Remove any H1 already present at top of html that repeats this text
+        // (replace only a top-level <h1> that equals mdTitle)
+        html = html.replace(new RegExp('^\\s*<h1[^>]*>\\s*' + mdTitle.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\s*</h1>'), '');
+        // Also remove any duplicate H1 that may follow immediately
+        html = html.replace(new RegExp('(</h1>\\s*){2,}'), '</h1>');
+      }
+
+      // Render the article
+      container.innerHTML = html;
+
+      // 3) Debug: show a small confirmation block (invisible in production later)
+      const dbg = document.createElement("div");
+      dbg.style.fontSize = "0.9em";
+      dbg.style.color = "#666";
+      dbg.style.marginTop = "12px";
+      dbg.innerHTML = `<em>Loaded: <strong>${file}</strong></em>`;
+      container.appendChild(dbg);
+
+      // 4) Fetch posts.json to build related posts
+      try {
+        const postsResp = await fetch('posts.json', {cache: "no-cache"});
+        if (!postsResp.ok) {
+          // Show useful debug message
+          container.appendChild(document.createElement("hr"));
+          debugLine(`(Debug) Could not load posts.json — HTTP ${postsResp.status}`, true);
+          return;
+        }
+        const posts = await postsResp.json();
+
+        // Sanity check
+        if (!Array.isArray(posts) || posts.length === 0) {
+          container.appendChild(document.createElement("hr"));
+          debugLine("(Debug) posts.json loaded but contains no entries.", false);
+          return;
+        }
+
+        // Find related (exclude current file), pick up to 3
+        const related = posts.filter(p => p.file !== file).sort(() => 0.5 - Math.random()).slice(0, 3);
+
+        if (related.length === 0) {
+          container.appendChild(document.createElement("hr"));
+          debugLine("(Debug) No related posts (maybe posts.json has only this article).", false);
+          return;
+        }
+
+        // Build related HTML and append
+        const relatedDiv = document.createElement("div");
+        relatedDiv.className = "related";
+        let listHtml = `<h3>Related Articles</h3><ul style="list-style:none;padding:0;margin:8px 0;">`;
+        for (const r of related) {
+          const safeFile = encodeURIComponent(r.file);
+          listHtml += `<li style="margin:8px 0;"><a href="post.html?file=${safeFile}" style="color:#133b6b;text-decoration:none;font-weight:bold;">${r.title}</a></li>`;
+        }
+        listHtml += `</ul>`;
+        relatedDiv.innerHTML = listHtml;
+        container.appendChild(document.createElement("hr"));
+        container.appendChild(relatedDiv);
+      } catch (e) {
+        container.appendChild(document.createElement("hr"));
+        debugLine("(Debug) Error while fetching or parsing posts.json. See console.", true);
+        console.error("posts.json error:", e);
+      }
+
+    } catch (err) {
+      container.innerHTML = `<p style="color:#b00020;">⚠️ Unexpected error loading article. See console for details.</p>`;
+      console.error("Unexpected error:", err);
+    }
+  })();
+</script>
