@@ -166,7 +166,7 @@
           const postDiv = document.createElement("div");
           postDiv.classList.add("post-item");
           postDiv.innerHTML = `
-            <h3><a href="posts/${post.file}" target="_blank">${post.title}</a></h3>
+            <h3><a href="post.html?file=${post.file}">${post.title}</a></h3>
             <p><em>${post.date}</em></p>
           `;
           container.appendChild(postDiv);
