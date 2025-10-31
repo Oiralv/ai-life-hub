@@ -63,6 +63,30 @@
     .back:hover {
       background: #0a2540;
     }
+    .related {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #eee;
+    }
+    .related h3 {
+      color: #0a2540;
+      margin-bottom: 10px;
+    }
+    .related ul {
+      list-style: none;
+      padding: 0;
+    }
+    .related li {
+      margin-bottom: 10px;
+    }
+    .related a {
+      color: #133b6b;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .related a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -81,7 +105,7 @@
     <p>&copy; 2025 AI Life Hub Tech. All rights reserved.</p>
   </footer>
 
-  <!-- ✅ Markdown parser -->
+  <!-- Markdown parser -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -100,36 +124,31 @@
         // Convert Markdown to HTML
         const html = marked.parse(markdown);
         document.getElementById("article-content").innerHTML = html;
-        // ✅ After rendering the main article, load related posts
-try {
-  const res = await fetch("posts.json");
-  const posts = await res.json();
 
-  // Find the current post and suggest 3 others
-  const currentFile = file;
-  const related = posts
-    .filter(p => p.file !== currentFile)
-    .sort(() => 0.5 - Math.random())
-    .slice(0, 3);
+        // ✅ Load related posts
+        const res = await fetch("posts.json");
+        const posts = await res.json();
 
-  if (related.length > 0) {
-    const relatedHTML = `
-      <hr style="margin-top:40px; border:none; border-top:2px solid #eee;">
-      <h3 style="color:#0a2540; margin-top:20px;">Related Articles</h3>
-      <ul style="list-style:none; padding:0;">
-        ${related.map(r => `
-          <li style="margin-bottom:10px;">
-            <a href="post.html?file=${r.file}" style="color:#133b6b; text-decoration:none; font-weight:bold;">
-              ${r.title}
-            </a>
-          </li>`).join("")}
-      </ul>
-    `;
-    document.getElementById("article-content").innerHTML += relatedHTML;
-  }
-} catch (e) {
-  console.error("Could not load related posts", e);
-}
+        const related = posts
+          .filter(p => p.file !== file)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+
+        if (related.length > 0) {
+          const relatedHTML = `
+            <div class="related">
+              <h3>Related Articles</h3>
+              <ul>
+                ${related.map(r => `
+                  <li>
+                    <a href="post.html?file=${r.file}">${r.title}</a>
+                  </li>
+                `).join("")}
+              </ul>
+            </div>
+          `;
+          document.getElementById("article-content").innerHTML += relatedHTML;
+        }
 
       } catch (err) {
         document.getElementById("article-content").innerHTML =
