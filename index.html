@@ -147,5 +147,40 @@
     </p>
     <p>AI Life Hub Tech is an independent publication offering educational content about Artificial Intelligence, digital tools, and modern technology.</p>
   </footer>
+    <script>
+    async function loadPosts() {
+      const container = document.getElementById("posts-list");
+
+      try {
+        const response = await fetch("posts.json");
+        if (!response.ok) throw new Error("Cannot load posts.json");
+        const posts = await response.json();
+
+        if (!posts || posts.length === 0) {
+          container.innerHTML = "<p>No AI articles available yet. Check back soon!</p>";
+          return;
+        }
+
+        container.innerHTML = "";
+        posts.forEach(post => {
+          const postDiv = document.createElement("div");
+          postDiv.classList.add("post-item");
+          postDiv.innerHTML = `
+            <h3><a href="posts/${post.file}" target="_blank">${post.title}</a></h3>
+            <p><em>${post.date}</em></p>
+          `;
+          container.appendChild(postDiv);
+        });
+      } catch (err) {
+        container.innerHTML = "<p>⚠️ Unable to load recent articles.</p>";
+        console.error(err);
+      }
+    }
+
+    loadPosts();
+  </script>
+</body>
+</html>
+
 </body>
 </html>
