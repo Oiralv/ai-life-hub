@@ -1,105 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Life Hub Tech - Article</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      background: #f4f6f9;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f4f4f4;
       color: #333;
-      line-height: 1.8;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
     }
     header {
       background: #0a2540;
-      color: #fff;
-      padding: 30px 0;
+      color: white;
       text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2.2em;
+      padding: 20px 0;
     }
     .container {
       width: 90%;
-      max-width: 850px;
+      max-width: 800px;
       background: white;
-      margin: 40px auto;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      margin: 30px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
-    #article-content h1, #article-content h2, #article-content h3 {
+    article h1 {
       color: #0a2540;
-      margin-top: 1.4em;
+      font-size: 1.8em;
+      margin-bottom: 15px;
     }
-    #article-content p {
-      margin-bottom: 1em;
+    article img {
+      width: 100%;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+    article p {
       font-size: 1.05em;
+      margin-bottom: 15px;
     }
-    #article-content ul {
-      padding-left: 1.4em;
-      margin-bottom: 1em;
-    }
-    #article-content li {
-      margin-bottom: 0.5em;
-    }
-    #article-content img {
-      display: block;
-      max-width: 100%;
-      margin: 20px auto;
-      border-radius: 10px;
-    }
-    .back-link {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 18px;
+    footer {
+      text-align: center;
+      padding: 20px;
       background: #0a2540;
       color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: 0.3s ease;
+      margin-top: 40px;
+      font-size: 0.9em;
     }
-    .back-link:hover {
+    .back {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 8px 16px;
       background: #133b6b;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+    .back:hover {
+      background: #0a2540;
     }
   </style>
 </head>
 <body>
   <header>
     <h1>AI Life Hub Tech</h1>
-    <p>Exploring the Future of Artificial Intelligence</p>
   </header>
 
   <div class="container">
-    <div id="article-content">Loading article...</div>
-    <a href="index.html" class="back-link">← Back to Home</a>
+    <a class="back" href="index.html">← Back to Home</a>
+    <article id="article-content">
+      <p>Loading article...</p>
+    </article>
   </div>
 
+  <footer>
+    <p>&copy; 2025 AI Life Hub Tech. All rights reserved.</p>
+  </footer>
+
+  <!-- ✅ Markdown parser -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-    async function loadArticle() {
-      const params = new URLSearchParams(window.location.search);
-      const file = params.get("file");
-      const container = document.getElementById("article-content");
+    const params = new URLSearchParams(window.location.search);
+    const file = params.get("file");
 
+    async function loadArticle() {
       if (!file) {
-        container.innerHTML = "<p>❌ No article selected.</p>";
+        document.getElementById("article-content").innerHTML = "<p>❌ No article selected.</p>";
         return;
       }
 
       try {
         const response = await fetch(`posts/${file}`);
-        const text = await response.text();
-        const html = marked.parse(text);
-        container.innerHTML = html;
-      } catch (error) {
-        container.innerHTML = "<p>⚠️ Unable to load this article.</p>";
-        console.error(error);
+        const markdown = await response.text();
+
+        // Convert Markdown to HTML
+        const html = marked.parse(markdown);
+        document.getElementById("article-content").innerHTML = html;
+      } catch (err) {
+        document.getElementById("article-content").innerHTML =
+          "<p>⚠️ Unable to load this article.</p>";
       }
     }
 
