@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Life Hub Tech - Article</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+    }
+    header {
+      background: #0a2540;
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+    }
+    .container {
+      width: 90%;
+      max-width: 800px;
+      background: white;
+      margin: 30px auto;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    #article-content h1, h2, h3 {
+      color: #0a2540;
+    }
+    a {
+      color: #133b6b;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI Life Hub Tech</h1>
+    <p>Exploring the Future of Artificial Intelligence</p>
+  </header>
+
+  <div class="container">
+    <div id="article-content">Loading article...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    async function loadArticle() {
+      const params = new URLSearchParams(window.location.search);
+      const file = params.get("file");
+      const container = document.getElementById("article-content");
+
+      if (!file) {
+        container.innerHTML = "<p>❌ No article selected.</p>";
+        return;
+      }
+
+      try {
+        const response = await fetch(`posts/${file}`);
+        const text = await response.text();
+        const html = marked.parse(text);
+        container.innerHTML = html;
+      } catch (error) {
+        container.innerHTML = "<p>⚠️ Unable to load this article.</p>";
+        console.error(error);
+      }
+    }
+
+    loadArticle();
+  </script>
+</body>
+</html>
