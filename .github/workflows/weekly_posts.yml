@@ -1,42 +1,35 @@
-name: Weekly Auto-generate AI Article
+name: Generate Article Every Hour
 
 on:
   schedule:
-    - cron: "0 12 * * 1"   # ⏰ Cada lunes a las 12:00 UTC (puedes cambiarlo)
-  workflow_dispatch:       # Permite ejecutarlo manualmente desde GitHub Actions
-
-permissions:
-  contents: write
+    - cron: "0 * * * *"   # <-- Ejecuta cada hora
+  workflow_dispatch:
 
 jobs:
-  generate:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      - name: 📦 Install dependencies
-        run: pip install --upgrade openai
+    - name: Install dependencies
+      run: pip install openai
 
+    - name: Run article generator
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: python generate_article.py
 
-      - name: ✍️ Generate weekly article
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: gpt-5
-        run: |
-          python scripts/generate_post.py
-
-      - name: 💾 Commit and push new articles
-        run: |
-          git config user.name "AI Life Hub Bot"
-          git config user.email "bot@ailifehubtech.com"
-          git add posts/*.md posts.json || echo "No posts to add"
-          git commit -m "🤖 Weekly AI article update" || echo "Nothing to commit"
-          git push
-
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "GitHub Bot"
+        git config --global user.email "bot@github.com"
+        git add .
+        git commit -m "New article generated" || echo "No changes to commit"
+        git push
