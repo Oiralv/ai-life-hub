@@ -1,7 +1,8 @@
 from openai import OpenAI
 import json
 import os
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 
 # Initialize OpenAI client
 client = OpenAI()
@@ -12,6 +13,24 @@ os.makedirs(POSTS_DIR, exist_ok=True)
 
 # File to keep track of posts
 POSTS_JSON = "posts.json"
+STATE_FILE = "bot_state.json"   # <-- Nuevo archivo para almacenar el estado
+
+
+def load_state():
+    if not os.path.exists(STATE_FILE):
+        # Primera ejecución: guardamos la hora de inicio
+        state = {"start_time": datetime.now().isoformat()}
+        with open(STATE_FILE, "w") as f:
+            json.dump(state, f)
+        return state
+    else:
+        with open(STATE_FILE, "r") as f:
+            return json.load(f)
+
+
+def save_state(state):
+    with open(STATE_FILE, "w") as f:
+        json.dump(state, f)
 
 
 def generate_article():
@@ -27,7 +46,7 @@ def generate_article():
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You are a creative AI journalist."},
-            {"role": "user", "content": topic_prompt},
+            {"role": "user",  "content": topic_prompt},
         ],
     )
     topic = topic_resp.choices[0].message.content.strip().replace('"', '')
@@ -42,7 +61,7 @@ def generate_article():
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You are an expert technology writer."},
-            {"role": "user", "content": article_prompt},
+            {"role": "user",   "content": article_prompt},
         ],
     )
     content = article_resp.choices[0].message.content.strip()
@@ -78,5 +97,26 @@ def generate_article():
     print(f"✅ Generated new article: {filename}")
 
 
+def run_bot():
+    state = load_state()
+    start_time = datetime.fromisoformat(state["start_time"])
+
+    while True:
+        now = datetime.now()
+        elapsed = now - start_time
+
+        # Primeras 30 horas
+        if elapsed < timedelta(hours=30):
+            print("⏰ Modo: PUBLICACIÓN CADA HORA")
+            generate_article()
+            time.sleep(3600)
+
+        else:
+            print("📅 Modo: PUBLICACIÓN SEMANAL")
+            generate_article()
+            # 1 semana = 7 días
+            time.sleep(7 * 24 * 3600)
+
+
 if __name__ == "__main__":
-    generate_article()
+    run_bot()
